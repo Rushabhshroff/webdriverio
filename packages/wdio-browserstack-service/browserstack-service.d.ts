@@ -39,5 +39,9 @@ interface BrowserstackConfig {
      * Specified optional will be passed down to BrowserstackLocal. See this list for details:
      * https://stackoverflow.com/questions/39040108/import-class-in-definition-file-d-ts
      */
-    opts?: Partial<import('browserstack-local').Options>
+    opts?: Partial<import('browserstack-local').Options>,
+    /**
+     * Set this to true if you don't want test status on browserstack to be marked automatically based on test results
+     */
+     disableAutoMarkStatus?: boolean
 }

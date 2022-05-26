@@ -101,19 +101,20 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     after (result: number) {
+
+        let jobUpdates = {}
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
         // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
         if (this._options.preferScenarioName && this._scenariosThatRan.length === 1){
             this._fullTitle = this._scenariosThatRan.pop()
         }
-
-        const hasReasons = Boolean(this._failReasons.filter(Boolean).length)
-
-        return this._updateJob({
-            status: result === 0 ? 'passed' : 'failed',
-            name: this._fullTitle,
-            reason: hasReasons ? this._failReasons.join('\n') : undefined
-        })
+        if (!this._options.disableAutoMarkStatus){
+            const hasReasons = Boolean(this._failReasons.filter(Boolean).length)
+            jobUpdates['reason'] = hasReasons ? this._failReasons.join('\n') : undefined
+            jobUpdates['status'] = result === 0 ? 'passed' : 'failed'
+        }
+        jobUpdates['name'] = this._fullTitle
+        return this._updateJob(jobUpdates)
     }
 
     /**
