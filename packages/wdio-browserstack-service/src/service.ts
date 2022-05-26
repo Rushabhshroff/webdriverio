@@ -108,7 +108,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._options.preferScenarioName && this._scenariosThatRan.length === 1){
             this._fullTitle = this._scenariosThatRan.pop()
         }
-        if(!this._options.disableAutoMarkStatus){
+        if (!this._options.disableAutoMarkStatus){
             const hasReasons = Boolean(this._failReasons.filter(Boolean).length)
             jobUpdates['reason'] = hasReasons ? this._failReasons.join('\n') : undefined
             jobUpdates['status'] = result === 0 ? 'passed' : 'failed'
