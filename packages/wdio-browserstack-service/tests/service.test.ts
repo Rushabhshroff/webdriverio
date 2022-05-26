@@ -490,7 +490,6 @@ describe('after', () => {
                 reason: undefined
             }, username: 'foo', password: 'bar' })
     })
-
     it('should call _update when session has errors (exit code 1)', async () => {
         const updateSpy = jest.spyOn(service, '_update')
         await service.before(service['_config'], [], browser)
@@ -513,7 +512,6 @@ describe('after', () => {
                 reason: 'I am failure'
             }, username: 'foo', password: 'bar' })
     })
-
     describe('Cucumber only', function () {
         it('should call _update with status "failed" if strict mode is "on" and all tests are pending', async () => {
             service = new BrowserstackService({}, [] as any,
@@ -761,6 +759,123 @@ describe('after', () => {
                         status: 'passed',
                     })
                 })
+            })
+
+            describe("disableAutoMarkStatus",()=>{
+                describe('disabled',()=>{
+                    [{
+                        status:"FAILED", body: { 
+                            name: 'Feature1',
+                            reason: 'Unknown Error',
+                            status: 'failed'
+                        }
+                    },{
+                        status:"SKIPPED", body: {
+                            name: 'Can do something single',
+                            reason: undefined,
+                            status: 'failed',
+                        }
+                    }].map(({status,body})=>{
+                        it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`,async ()=>{
+                            service = new BrowserstackService({ preferScenarioName : true,disableAutoMarkStatus:false }, [] as any,
+                                { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+                            service.before({}, [], browser)
+    
+                            const updateSpy = jest.spyOn(service, '_update')
+    
+                            await service.beforeFeature(null, { name: 'Feature1' })
+                            await service.afterScenario({ pickle: { name: 'Can do something single' }, result: { status } })
+                            await service.after(1)
+    
+                            expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, body)
+                        })  
+                    })
+                })
+                describe('enabled',()=>{
+                    [{
+                        status:"FAILED", body: { 
+                            name: 'Feature1',
+                            reason: 'Unknown Error',
+                            status: 'failed'
+                        }
+                    },{
+                        status:"SKIPPED", body: {
+                            name: 'Can do something single',
+                            reason: undefined,
+                            status: 'failed',
+                        }
+                    }].map(({status,body})=>{
+                        it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`,async ()=>{
+                            service = new BrowserstackService({ preferScenarioName : true,disableAutoMarkStatus:true }, [] as any,
+                                { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+                            service.before({}, [], browser)
+    
+                            const updateSpy = jest.spyOn(service, '_update')
+    
+                            await service.beforeFeature(null, { name: 'Feature1' })
+                            await service.afterScenario({ pickle: { name: 'Can do something single' }, result: { status } })
+                            await service.after(1)
+    
+                            expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, {
+                                name:body.name
+                            })
+                        })  
+                    })
+                })
+            })
+        })
+    })
+    describe("disableAutoMarkStatus",()=>{
+        describe('disabled',()=>{
+            [{
+                name: 'I pass the test',
+                reason: undefined,
+                status: 'passed',
+            },{
+                name: 'I fail the test',
+                reason: "I Failed",
+                status: 'failed',
+            }].map((body)=>{
+                it(`should call _update /w status ${body.status} when single "${body.status}" test ran`,async ()=>{
+                    service = new BrowserstackService({ disableAutoMarkStatus:false }, [] as any,
+                        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+                    service.before({}, [], browser)
+    
+                    service['_fullTitle'] = body.name
+                    service['_failReasons'] = body.reason?[body.reason]:[]
+    
+                    const updateSpy = jest.spyOn(service, '_update')
+                    const result = body.status == "passed"?0:1
+                    await service.after(result)
+                    expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, body)
+                })  
+            })
+        })
+        describe('enabled',()=>{
+            [{
+                name: 'I pass the test',
+                reason: undefined,
+                status: 'passed',
+            },{
+                name: 'I fail the test',
+                reason: "I Failed",
+                status: 'failed',
+            }].map((body)=>{
+                it(`should call _update /w status ${body.status} when single "${body.status}" test ran`,async ()=>{
+                    service = new BrowserstackService({ disableAutoMarkStatus:true }, [] as any,
+                        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+                    service.before({}, [], browser)
+    
+                    service['_fullTitle'] = body.name
+                    service['_failReasons'] = body.reason?[body.reason]:[]
+    
+                    const updateSpy = jest.spyOn(service, '_update')
+                    const result = body.status == "passed"?0:1
+                    await service.after(result)
+                    expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, {
+                        name:body.name
+                    })
+                })  
             })
         })
     })

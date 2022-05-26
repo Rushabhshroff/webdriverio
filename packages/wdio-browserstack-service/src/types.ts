@@ -36,5 +36,9 @@ export interface BrowserstackConfig {
      * }
      * ```
      */
-    opts?: Partial<import('browserstack-local').Options>
+    opts?: Partial<import('browserstack-local').Options>,
+    /**
+     * Set this to false if you don't want test status on browserstack to be marked automatically based on test results
+     */
+    disableAutoMarkStatus?: boolean
 }
